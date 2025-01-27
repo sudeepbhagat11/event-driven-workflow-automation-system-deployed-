@@ -1,0 +1,23 @@
+{
+  "name": "worker",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tsc -b && node src/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@prisma/client": "^6.1.0",
+    "kafkajs": "^2.2.4",
+    "nodemailer": "^6.10.0",
+    "stripe": "^17.5.0"
+  },
+  "devDependencies": {
+    "@types/nodemailer": "^6.4.17",
+    "prisma": "^6.1.0"
+  }
+}
