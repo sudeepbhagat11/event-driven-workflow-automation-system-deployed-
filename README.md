@@ -120,6 +120,4 @@ All triggered events are sent to a **Kafka topic** (`zap-events`), picked up by 
 
 ---
 
-## 📄 License
 
-MIT
