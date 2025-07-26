@@ -98,50 +98,62 @@ npm run dev
 ```
 
 ---
+## 📸 Sample Workflow
 
-🔔 Trigger: Webhook (e.g. Stripe, custom POST)
-A user configures a workflow (Zap) with the following steps:
+### 🔔 Trigger: Webhook (e.g. Stripe, GitHub, or Custom POST)
 
-🧭 Workflow Steps
-Trigger: A webhook is received at
+A user configures a Zap (workflow) with the following steps:
 
-ruby
-Copy
-Edit
+---
+
+### 🧭 Workflow Steps
+
+**Trigger:** A webhook is received at:
+
 POST /hooks/catch/:userId/:zapId
-This could come from Stripe, GitHub, a cron job, or any external source.
 
-Action 1: Send an email using a template.
-For example:
 
-json
-Copy
-Edit
+
+This can be triggered by external services like Stripe, GitHub, or a cron-based HTTP client.
+
+---
+
+**Action 1: Send Email**
+
+Sends a dynamic email using a template and metadata from the webhook.
+
+```json
 {
   "to": "{{user.email}}",
   "body": "Hello {{user.name}}, your order has been received!"
 }
-Action 2: Generate a Stripe test-mode payment link dynamically using metadata (e.g. amount, user email) and send it to the customer.
+Action 2: Generate Stripe Test Payment Link
 
+Creates a Stripe test-mode payment link and sends it to the user. Metadata placeholders are dynamically resolved:
+
+
+{
+  "amount": "{{order.amount}}",
+  "address": "{{user.email}}"
+}
 🛠️ How It Works Internally
-When the webhook hits /hooks/catch/:userId/:zapId, the backend stores:
+When a webhook is received:
 
-A new row in the ZapRun table, storing the webhook payload (as JSON).
+A new row is inserted into the ZapRun table, storing the webhook payload.
 
-A corresponding row in ZapRunOutbox to queue this for processing.
+A corresponding row is inserted into the ZapRunOutbox table — this acts as a queue.
 
-A Kafka producer service scans the outbox table, publishes a message like:
+A Kafka producer service scans the ZapRunOutbox table and publishes a message to Kafka:
 
-json
-Copy
-Edit
+
 {
   "zapRunId": "abc123",
   "stage": 0
 }
-...to the zap-events topic.
+The message is sent to the Kafka topic: zap-events.
 
-A Kafka worker/consumer listens to zap-events and processes each stage:
+A Kafka worker/consumer then picks up the message and processes the workflow:
+
 
 
 ---
