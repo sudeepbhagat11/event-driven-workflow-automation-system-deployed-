@@ -99,13 +99,50 @@ npm run dev
 
 ---
 
-## 📸 Sample Workflow
+🔔 Trigger: Webhook (e.g. Stripe, custom POST)
+A user configures a workflow (Zap) with the following steps:
 
-* **Trigger**: Time-based trigger or webhook
-* **Action 1**: Send email to user via Gmail
-* **Action 2**: Generate a Stripe test-mode payment link and send it
+🧭 Workflow Steps
+Trigger: A webhook is received at
 
-All triggered events are sent to a **Kafka topic** (`zap-events`), picked up by the `worker`, and executed through handlers in `hooks`.
+ruby
+Copy
+Edit
+POST /hooks/catch/:userId/:zapId
+This could come from Stripe, GitHub, a cron job, or any external source.
+
+Action 1: Send an email using a template.
+For example:
+
+json
+Copy
+Edit
+{
+  "to": "{{user.email}}",
+  "body": "Hello {{user.name}}, your order has been received!"
+}
+Action 2: Generate a Stripe test-mode payment link dynamically using metadata (e.g. amount, user email) and send it to the customer.
+
+🛠️ How It Works Internally
+When the webhook hits /hooks/catch/:userId/:zapId, the backend stores:
+
+A new row in the ZapRun table, storing the webhook payload (as JSON).
+
+A corresponding row in ZapRunOutbox to queue this for processing.
+
+A Kafka producer service scans the outbox table, publishes a message like:
+
+json
+Copy
+Edit
+{
+  "zapRunId": "abc123",
+  "stage": 0
+}
+...to the zap-events topic.
+
+A Kafka worker/consumer listens to zap-events and processes each stage:
+
 
 ---
 
