@@ -1,1 +1,1 @@
-{"root":["./prisma/seed.ts","./src/config.ts","./src/index.ts","./src/db/index.ts","./src/router/actionRouter.ts","./src/router/middleware.ts","./src/router/triggerRouter.ts","./src/router/userRouter.ts","./src/router/zapRouter.ts","./src/types/index.ts"],"version":"5.7.2"}
+{"root":["./prisma/seed.ts","./src/config.ts","./src/index.ts","./src/db/index.ts","./src/router/actionrouter.ts","./src/router/middleware.ts","./src/router/triggerrouter.ts","./src/router/userrouter.ts","./src/router/zaprouter.ts","./src/types/index.ts"],"version":"5.7.2"}

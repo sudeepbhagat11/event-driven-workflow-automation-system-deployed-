@@ -11,6 +11,7 @@ app.post("/hooks/catch/:userId/:zapId", async (req, res) => {
   const zapId = req.params.zapId;
   const body = req.body;
 
+  console.log("Zap id: ",zapId);
   // password check logic
 
   // store it in db

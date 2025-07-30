@@ -8,7 +8,7 @@
 // // //   console.log("Input Text:", text);
 // // //   console.log("Input Values:", values);
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.parse = void 0;
+exports.parse = parse;
 // // //   let startIndex = 0;
 // // //   let endIndex = 1;
 // // //   let finalString = "";
@@ -201,4 +201,3 @@ function parse(text, values, startDelimeter = "{", endDelimeter = "}") {
     }
     return finalString;
 }
-exports.parse = parse;

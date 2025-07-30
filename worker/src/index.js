@@ -29,16 +29,16 @@ function main() {
         yield consumer.subscribe({ topic: TOPIC_NAME, fromBeginning: true });
         yield consumer.run({
             autoCommit: false,
-            eachMessage: ({ topic, partition, message, heartbeat, pause }) => __awaiter(this, void 0, void 0, function* () {
-                var _a, _b, _c, _d, _e, _f, _g, _h;
+            eachMessage: (_a) => __awaiter(this, [_a], void 0, function* ({ topic, partition, message, heartbeat, pause }) {
+                var _b, _c, _d, _e, _f, _g, _h, _j;
                 console.log({
                     offset: message.offset,
-                    value: (_a = message.value) === null || _a === void 0 ? void 0 : _a.toString(),
+                    value: (_b = message.value) === null || _b === void 0 ? void 0 : _b.toString(),
                 });
-                if (!((_b = message.value) === null || _b === void 0 ? void 0 : _b.toString())) {
+                if (!((_c = message.value) === null || _c === void 0 ? void 0 : _c.toString())) {
                     return;
                 }
-                const parsedValue = JSON.parse((_c = message.value) === null || _c === void 0 ? void 0 : _c.toString());
+                const parsedValue = JSON.parse((_d = message.value) === null || _d === void 0 ? void 0 : _d.toString());
                 const zapRunId = parsedValue.zapRunId;
                 const stage = parsedValue.stage;
                 const zapRunDetails = yield prismaClient.zapRun.findFirst({
@@ -66,8 +66,8 @@ function main() {
                 const zapRunMetadata = zapRunDetails === null || zapRunDetails === void 0 ? void 0 : zapRunDetails.metadata;
                 console.log("ZapRun Metadata:", JSON.stringify(zapRunMetadata, null, 2));
                 if (currentAction.type.id === "email") {
-                    const body = (0, parser_1.parse)((_d = currentAction.metadata) === null || _d === void 0 ? void 0 : _d.body, zapRunMetadata);
-                    const to = (0, parser_1.parse)((_e = currentAction.metadata) === null || _e === void 0 ? void 0 : _e.email, zapRunMetadata);
+                    const body = (0, parser_1.parse)((_e = currentAction.metadata) === null || _e === void 0 ? void 0 : _e.body, zapRunMetadata);
+                    const to = (0, parser_1.parse)((_f = currentAction.metadata) === null || _f === void 0 ? void 0 : _f.email, zapRunMetadata);
                     console.log(`Sending out email to ${to} body is ${body}`);
                     yield (0, sendEmail_1.sendEmail)(to, body);
                 }
@@ -77,8 +77,8 @@ function main() {
                     console.log("ZapRun Metadata:", JSON.stringify(zapRunMetadata, null, 2));
                     console.log("Current Action Metadata:", JSON.stringify(currentAction.metadata, null, 2));
                     // Extract and parse the amount and email from metadata
-                    const amount = (0, parser_1.parse)((_f = currentAction.metadata) === null || _f === void 0 ? void 0 : _f.amount, zapRunMetadata);
-                    const to = (0, parser_1.parse)((_g = currentAction.metadata) === null || _g === void 0 ? void 0 : _g.address, zapRunMetadata);
+                    const amount = (0, parser_1.parse)((_g = currentAction.metadata) === null || _g === void 0 ? void 0 : _g.amount, zapRunMetadata);
+                    const to = (0, parser_1.parse)((_h = currentAction.metadata) === null || _h === void 0 ? void 0 : _h.address, zapRunMetadata);
                     console.log(to);
                     console.log(amount);
                     if (!amount || !to) {
@@ -104,7 +104,7 @@ function main() {
                     }
                 }
                 yield new Promise((r) => setTimeout(r, 500));
-                const lastStage = (((_h = zapRunDetails === null || zapRunDetails === void 0 ? void 0 : zapRunDetails.zap.actions) === null || _h === void 0 ? void 0 : _h.length) || 1) - 1;
+                const lastStage = (((_j = zapRunDetails === null || zapRunDetails === void 0 ? void 0 : zapRunDetails.zap.actions) === null || _j === void 0 ? void 0 : _j.length) || 1) - 1;
                 if (lastStage !== stage) {
                     producer.send({
                         topic: TOPIC_NAME,

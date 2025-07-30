@@ -14,10 +14,12 @@
     "@prisma/client": "^6.1.0",
     "kafkajs": "^2.2.4",
     "nodemailer": "^6.10.0",
-    "stripe": "^17.5.0"
+    "stripe": "^17.5.0",
+    "ts-node": "^10.9.2"
   },
   "devDependencies": {
     "@types/nodemailer": "^6.4.17",
-    "prisma": "^6.1.0"
+    "prisma": "^6.1.0",
+    "typescript": "^5.8.2"
   }
 }

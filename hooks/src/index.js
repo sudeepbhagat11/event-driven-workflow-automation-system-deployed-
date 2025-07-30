@@ -21,6 +21,7 @@ app.post("/hooks/catch/:userId/:zapId", (req, res) => __awaiter(void 0, void 0, 
     const userid = req.params.userId;
     const zapId = req.params.zapId;
     const body = req.body;
+    console.log("Zap id: ", zapId);
     // password check logic
     // store it in db
     yield client.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {

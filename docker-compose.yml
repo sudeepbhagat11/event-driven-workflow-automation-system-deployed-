@@ -1,0 +1,350 @@
+# version: "3.8"
+
+# services:
+#   postgres:
+#     image: postgres
+#     restart: always
+#     environment:
+#       POSTGRES_USER: postgres
+#       POSTGRES_PASSWORD: mysecretpassword
+#       POSTGRES_DB: postgres
+#     ports:
+#       - "5432:5432"
+
+#   kafka:
+#     image: apache/kafka:3.9.0
+#     container_name: kafka
+#     ports:
+#       - "9092:9092"
+#       - "9093:9093"
+#     environment:
+#       KAFKA_NODE_ID: 1
+#       KAFKA_PROCESS_ROLES: controller,broker
+#       KAFKA_LISTENERS: INTERNAL://0.0.0.0:9092,EXTERNAL://0.0.0.0:9093
+#       KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:9093
+#       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+#       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+#       KAFKA_LOG_DIRS: /var/lib/kafka/data
+#       KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
+#       KAFKA_CONTROLLER_LISTENER_NAMES: EXTERNAL
+#     volumes:
+#       - kafka-data:/var/lib/kafka/data
+#     networks:
+#       - kafka-net
+
+#   backend:
+#     build: 
+#       context: ./primary-backend
+#       dockerfile: Dockerfile
+#     depends_on:
+#       - postgres
+#       - kafka
+#     environment:
+#       DATABASE_URL: "postgresql://postgres:mysecretpassword@postgres:5432/postgres"
+#     ports:
+#       - "3000:3000"
+#     command: ["npm", "run", "dev"]
+
+#   worker:
+#     build:
+#       context: ./worker
+#       dockerfile: Dockerfile
+#     depends_on:
+#       - postgres
+#       - kafka
+#     environment:
+#       DATABASE_URL: "postgresql://postgres:mysecretpassword@postgres:5432/postgres"
+#       SMTP_ENDPOINT: "smtp.gmail.com"
+#       SMTP_AUTH_EMAIL: "sudeepbhagat456@gmail.com"
+#       SMTP_AUTH_PASSWORD: "fnuldmegloyteedi"
+#       STRIPE_SECRET_KEY: "sk_test_REDACTED_REDACTED"
+#     command: ["npm", "run", "dev"]
+
+#   hooks:
+#     build:
+#       context: ./hooks
+#       dockerfile: Dockerfile
+#     depends_on:
+#       - postgres
+#     environment:
+#       DATABASE_URL: "postgresql://postgres:mysecretpassword@postgres:5432/postgres"
+#     command: ["npm", "run", "dev"]
+#     ports:
+#       - "3002:3002"
+
+#   frontend:
+#     build:
+#       context: ./frontend
+#       dockerfile: Dockerfile
+#     depends_on:
+#       - backend
+#     ports:
+#       - "3001:3001"
+#     volumes:
+#       - ./frontend:/app
+#       - /app/node_modules
+#     command: ["npm", "run", "dev"]
+
+# networks:
+#   kafka-net:
+#     driver: bridge
+
+# volumes:
+#   kafka-data:
+
+
+
+
+
+
+
+
+# version: "3.8"
+
+# services:
+#   postgres:
+#     image: postgres
+#     restart: always
+#     environment:
+#       POSTGRES_USER: postgres
+#       POSTGRES_PASSWORD: mysecretpassword
+#       POSTGRES_DB: postgres
+#     ports:
+#       - "5432:5432"
+
+#   kafka:
+#     image: bitnami/kafka:latest
+#     container_name: kafka
+#     restart: always
+#     environment:
+#       - KAFKA_BROKER_ID=1
+#       - KAFKA_CFG_NODE_ID=1
+#       - KAFKA_CFG_PROCESS_ROLES=controller,broker
+#       - KAFKA_CFG_LISTENERS=INTERNAL://:9092,EXTERNAL://:9093
+#       - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka:9092,EXTERNAL://localhost:9093
+#       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+#       - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=INTERNAL
+#       - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+#       - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=EXTERNAL
+#     ports:
+#       - "9092:9092"
+#       - "9093:9093"
+#     volumes:
+#       - kafka-data:/bitnami/kafka
+#     networks:
+#       - kafka-net
+#     healthcheck:
+#       test: ["CMD", "kafka-topics.sh", "--list", "--bootstrap-server", "localhost:9092"]
+#       interval: 10s
+#       retries: 5
+
+#   kafka-init:
+#     image: bitnami/kafka:latest
+#     depends_on:
+#       kafka:
+#         condition: service_healthy
+#     entrypoint: ["/bin/sh", "-c"]
+#     command: |
+#       "
+#       # Wait for Kafka to be ready
+#       sleep 10;
+#       # Create Kafka topic if not exists
+#       kafka-topics.sh --create --if-not-exists --topic zap-events --bootstrap-server kafka:9092
+#       "
+#     networks:
+#       - kafka-net
+
+
+#   backend:
+#     build: 
+#       context: ./primary-backend
+#       dockerfile: Dockerfile
+#     depends_on:
+#       - postgres
+#       - kafka
+#     environment:
+#       DATABASE_URL: "postgresql://postgres:mysecretpassword@postgres:5432/postgres"
+#     ports:
+#       - "3000:3000"
+#     command: ["npm", "run", "dev"]
+
+#   worker:
+#     build:
+#       context: ./worker
+#       dockerfile: Dockerfile
+#     depends_on:
+#       - postgres
+#       - kafka
+#     environment:
+#       DATABASE_URL: "postgresql://postgres:mysecretpassword@postgres:5432/postgres"
+#       SMTP_ENDPOINT: "smtp.gmail.com"
+#       SMTP_AUTH_EMAIL: "sudeepbhagat456@gmail.com"
+#       SMTP_AUTH_PASSWORD: "fnuldmegloyteedi"
+#       STRIPE_SECRET_KEY: "sk_test_REDACTED_REDACTED"
+#     command: ["npm", "run", "dev"]
+
+#   hooks:
+#     build:
+#       context: ./hooks
+#       dockerfile: Dockerfile
+#     depends_on:
+#       - postgres
+#     environment:
+#       DATABASE_URL: "postgresql://postgres:mysecretpassword@postgres:5432/postgres"
+#     command: ["npm", "run", "dev"]
+#     ports:
+#       - "3002:3002"
+
+#   frontend:
+#     build:
+#       context: ./frontend
+#       dockerfile: Dockerfile
+#     depends_on:
+#       - backend
+#     ports:
+#       - "3001:3001"
+#     volumes:
+#       - ./frontend:/app
+#       - /app/node_modules
+#     command: ["npm", "run", "dev"]
+
+#   processor:
+#     build:
+#       context: ./processor
+#       dockerfile: Dockerfile
+#     depends_on:
+#       - kafka
+#     environment:
+#       DATABASE_URL: "postgresql://postgres:mysecretpassword@postgres:5432/postgres"
+#       KAFKA_BROKER: "kafka:9092"
+#     command: ["sh", "-c", "./wait-for-kafka.sh && npm run dev"]
+
+# networks:
+#   kafka-net:
+#     driver: bridge
+
+# volumes:
+#   kafka-data:
+
+
+
+
+
+
+
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+
+  kafka:
+    image: apache/kafka:3.9.0
+    container_name: kafka
+    restart: always
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: controller,broker
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:9092,EXTERNAL://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
+      KAFKA_CONTROLLER_LISTENER_NAMES: EXTERNAL
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    networks:
+      - kafka-net
+
+  kafka-init:
+    image: apache/kafka:3.9.0
+    depends_on:
+      - kafka
+    volumes:
+      - ./init-kafka.sh:/init-kafka.sh
+    entrypoint: ["/bin/sh", "-c", "/init-kafka.sh"]
+    networks:
+      - kafka-net
+
+  backend:
+    build: 
+      context: ./primary-backend
+      dockerfile: Dockerfile
+    depends_on:
+      - postgres
+      - kafka
+    environment:
+      DATABASE_URL: "postgresql://postgres:mysecretpassword@postgres:5432/postgres"
+    ports:
+      - "3000:3000"
+    command: ["npm", "run", "dev"]
+
+  worker:
+    build:
+      context: ./worker
+      dockerfile: Dockerfile
+    depends_on:
+      - postgres
+      - kafka
+    environment:
+      DATABASE_URL: "postgresql://postgres:mysecretpassword@postgres:5432/postgres"
+    command: ["npm", "run", "dev"]
+
+  hooks:
+    build:
+      context: ./hooks
+      dockerfile: Dockerfile
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: "postgresql://postgres:mysecretpassword@postgres:5432/postgres"
+    command: ["npm", "run", "dev"]
+    ports:
+      - "3002:3002"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    depends_on:
+      - backend
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: ["npm", "run", "dev"]
+
+  processor:
+    build:
+      context: ./processor
+      dockerfile: Dockerfile
+    depends_on:
+      - kafka-init
+    environment:
+      DATABASE_URL: "postgresql://postgres:mysecretpassword@postgres:5432/postgres"
+      KAFKA_BROKER: "localhost:9092"
+    command: ["sh", "-c", "sleep 10 && npm run dev"]
+
+networks:
+  kafka-net:
+    driver: bridge
+
+volumes:
+  kafka-data:
+
+
+
+
+

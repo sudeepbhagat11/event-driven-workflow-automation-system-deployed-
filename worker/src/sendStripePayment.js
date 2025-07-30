@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendStripePayment = void 0;
+exports.sendStripePayment = sendStripePayment;
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 /**
  * Sends payment using Stripe.
@@ -30,7 +30,7 @@ function sendStripePayment(to, amount) {
             // Create a price object with the provided amount
             var price = yield stripe.prices.create({
                 product: `${product.id}`,
-                unit_amount: parseFloat(amount) * 100,
+                unit_amount: parseFloat(amount) * 100, // Convert amount to cents
                 currency: "inr",
             });
             if (!price) {
@@ -42,7 +42,7 @@ function sendStripePayment(to, amount) {
             const session = yield stripe.checkout.sessions.create({
                 line_items: [
                     {
-                        price: `${price.id}`,
+                        price: `${price.id}`, // Corrected the template string usage
                         quantity: 1,
                     },
                 ],
@@ -63,4 +63,3 @@ function sendStripePayment(to, amount) {
         }
     });
 }
-exports.sendStripePayment = sendStripePayment;
