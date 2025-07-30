@@ -194,7 +194,7 @@
 
 
 
-
+import express from "express";
 import { Kafka } from "kafkajs";
 import { PrismaClient } from "@prisma/client";
 import { parse } from "./parser";
@@ -236,6 +236,14 @@ const kafka = new Kafka({
 });
 
 let isShuttingDown = false;
+
+const app = express();
+const PORT = process.env.PORT || 10000;
+
+// Fake HTTP endpoint (Render requires it)
+app.get("/", (_, res) => res.send("Kafka Worker Running 🚀"));
+app.listen(PORT, () => console.log(`Listening on ${PORT}`));
+
 
 async function processMessage(zapRunId: string, stage: number, producer: any) {
   try {
