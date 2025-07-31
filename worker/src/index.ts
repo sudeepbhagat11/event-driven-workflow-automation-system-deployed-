@@ -1,30 +1,30 @@
-// import { Kafka } from "kafkajs";
-// import { PrismaClient } from "@prisma/client";
-// import { parse } from "./parser";
-// import { JsonObject } from "@prisma/client/runtime/library";
-// import { sendEmail } from "./sendEmail";
-// import { sendStripePayment } from "./sendStripePayment"
+import { Kafka } from "kafkajs";
+import { PrismaClient } from "@prisma/client";
+import { parse } from "./parser";
+import { JsonObject } from "@prisma/client/runtime/library";
+import { sendEmail } from "./sendEmail";
+import { sendStripePayment } from "./sendStripePayment"
 
 
-// const prismaClient = new PrismaClient();
+const prismaClient = new PrismaClient();
 
-// const TOPIC_NAME = "zap-events";
+const TOPIC_NAME = "zap-events";
 
-// // const kafka = new Kafka({
-// //   clientId: "outbox-processor",
-// //   brokers: ["localhost:9092"],
-// // });
+const kafka = new Kafka({
+  clientId: "outbox-processor",
+  brokers: ["34.59.72.10:9092"],
+});
 
-// // const kafka = new Kafka({
-// //   clientId: "outbox-processor",
-// //   brokers: [process.env.KAFKA_BROKER!],  // from Confluent UI
-// //   ssl: true,
-// //   sasl: {
-// //     mechanism: "plain",                  // must be lowercase
-// //     username: process.env.KAFKA_API_KEY!, // from Confluent API Key
-// //     password: process.env.KAFKA_API_SECRET!,
-// //   },
-// // });
+// const kafka = new Kafka({
+//   clientId: "outbox-processor",
+//   brokers: [process.env.KAFKA_BROKER!],  // from Confluent UI
+//   ssl: true,
+//   sasl: {
+//     mechanism: "plain",                  // must be lowercase
+//     username: process.env.KAFKA_API_KEY!, // from Confluent API Key
+//     password: process.env.KAFKA_API_SECRET!,
+//   },
+// });
 
 // const kafka = new Kafka({
 //   clientId: "outbox-processor",
@@ -40,75 +40,75 @@
 
 
 
-// async function main() {
-//   const consumer = kafka.consumer({ groupId: "main-worker" });
-//   await consumer.connect();
+async function main() {
+  const consumer = kafka.consumer({ groupId: "main-worker" });
+  await consumer.connect();
 
-//   const producer = kafka.producer();
-//   await producer.connect();
+  const producer = kafka.producer();
+  await producer.connect();
 
-//   await consumer.subscribe({ topic: TOPIC_NAME, fromBeginning: true });
+  await consumer.subscribe({ topic: TOPIC_NAME, fromBeginning: true });
 
-//   await consumer.run({
-//     autoCommit: false,
-//     eachMessage: async ({ topic, partition, message, heartbeat, pause }) => {
-//       console.log({
-//         offset: message.offset,
-//         value: message.value?.toString(),
-//       });
+  await consumer.run({
+    autoCommit: false,
+    eachMessage: async ({ topic, partition, message, heartbeat, pause }) => {
+      console.log({
+        offset: message.offset,
+        value: message.value?.toString(),
+      });
 
-//       if (!message.value?.toString()) {
-//         return;
-//       }
+      if (!message.value?.toString()) {
+        return;
+      }
 
-//       const parsedValue = JSON.parse(message.value?.toString());
-//       const zapRunId = parsedValue.zapRunId;
-//       const stage = parsedValue.stage;
+      const parsedValue = JSON.parse(message.value?.toString());
+      const zapRunId = parsedValue.zapRunId;
+      const stage = parsedValue.stage;
 
-//       const zapRunDetails = await prismaClient.zapRun.findFirst({
-//         where: {
-//           id: zapRunId
-//         },
+      const zapRunDetails = await prismaClient.zapRun.findFirst({
+        where: {
+          id: zapRunId
+        },
 
-//         include: {
-//           zap: {
-//             include: {
-//               actions: {
-//                 include: {
-//                   type: true
-//                 }
-//               }
-//             }
-//           }
-//         }
-//       })
-
-
+        include: {
+          zap: {
+            include: {
+              actions: {
+                include: {
+                  type: true
+                }
+              }
+            }
+          }
+        }
+      })
 
 
-//       const currentAction = zapRunDetails?.zap.actions.find(x => x.sortingOrder === stage);
-
-//       console.log(currentAction)
-
-//       if (!currentAction) {
-//         console.log("Current action not found?");
-//         return;
-//       }
-
-//       const zapRunMetadata = zapRunDetails?.metadata;
-
-//       console.log("ZapRun Metadata:", JSON.stringify(zapRunMetadata, null, 2));
 
 
-//       if (currentAction.type.id === "email") {
-//         const body = parse((currentAction.metadata as JsonObject)?.body as string, zapRunMetadata);
-//         const to = parse((currentAction.metadata as JsonObject)?.email as string, zapRunMetadata);
-//         console.log(`Sending out email to ${to} body is ${body}`)
-//         await sendEmail(to, body);
+      const currentAction = zapRunDetails?.zap.actions.find(x => x.sortingOrder === stage);
 
-//       }
+      console.log(currentAction)
 
-//       console.log("logging currentAction : " ,currentAction);
+      if (!currentAction) {
+        console.log("Current action not found?");
+        return;
+      }
+
+      const zapRunMetadata = zapRunDetails?.metadata;
+
+      console.log("ZapRun Metadata:", JSON.stringify(zapRunMetadata, null, 2));
+
+
+      if (currentAction.type.id === "email") {
+        const body = parse((currentAction.metadata as JsonObject)?.body as string, zapRunMetadata);
+        const to = parse((currentAction.metadata as JsonObject)?.email as string, zapRunMetadata);
+        console.log(`Sending out email to ${to} body is ${body}`)
+        await sendEmail(to, body);
+
+      }
+
+      console.log("logging currentAction : " ,currentAction);
 
        
 
@@ -116,81 +116,81 @@
 
 
 
-//       if (currentAction.type.id === "send-money") {
-//         console.log("Sending out Solana (Stripe payment)");
+      if (currentAction.type.id === "send-money") {
+        console.log("Sending out Solana (Stripe payment)");
 
-//         console.log("ZapRun Metadata:", JSON.stringify(zapRunMetadata, null, 2));
-//         console.log("Current Action Metadata:", JSON.stringify(currentAction.metadata, null, 2));
+        console.log("ZapRun Metadata:", JSON.stringify(zapRunMetadata, null, 2));
+        console.log("Current Action Metadata:", JSON.stringify(currentAction.metadata, null, 2));
 
       
-//         // Extract and parse the amount and email from metadata
-//         const amount = parse((currentAction.metadata as JsonObject)?.amount as string, zapRunMetadata);
-//         const to = parse((currentAction.metadata as JsonObject)?.address as string, zapRunMetadata);
+        // Extract and parse the amount and email from metadata
+        const amount = parse((currentAction.metadata as JsonObject)?.amount as string, zapRunMetadata);
+        const to = parse((currentAction.metadata as JsonObject)?.address as string, zapRunMetadata);
       
-//         console.log(to);
-//         console.log(amount);
+        console.log(to);
+        console.log(amount);
 
-//         if (!amount || !to) {
-//           console.error("❌ Invalid amount or email metadata.");
-//           return;
-//         }
+        if (!amount || !to) {
+          console.error("❌ Invalid amount or email metadata.");
+          return;
+        }
       
-//         console.log(`Processing payment of ₹${amount} for ${to}`);
+        console.log(`Processing payment of ₹${amount} for ${to}`);
       
-//         try {
-//           // Send Stripe payment request
-//           const paymentResult = await sendStripePayment(to, amount);
+        try {
+          // Send Stripe payment request
+          const paymentResult = await sendStripePayment(to, amount);
       
-//           if (paymentResult.success) {
-//             console.log(`✅ Payment Intent Created: ${paymentResult.sessionId}`);
-//             console.log(`Redirect URL: ${paymentResult.url}`);
+          if (paymentResult.success) {
+            console.log(`✅ Payment Intent Created: ${paymentResult.sessionId}`);
+            console.log(`Redirect URL: ${paymentResult.url}`);
             
-//             // Send webhook or handle further processing if needed
-//             console.log("Waiting for webhook confirmation...");
+            // Send webhook or handle further processing if needed
+            console.log("Waiting for webhook confirmation...");
             
             
 
-//           } else {
-//             console.error(`❌ Payment creation failed: ${paymentResult.message}`);
-//           }
+          } else {
+            console.error(`❌ Payment creation failed: ${paymentResult.message}`);
+          }
       
-//         } catch (error) {
-//           console.error("❌ Payment processing failed:", error);
-//         }
-//       }
+        } catch (error) {
+          console.error("❌ Payment processing failed:", error);
+        }
+      }
       
 
-//       await new Promise((r) => setTimeout(r, 500));
-//       const lastStage = (zapRunDetails?.zap.actions?.length || 1) - 1;
+      await new Promise((r) => setTimeout(r, 500));
+      const lastStage = (zapRunDetails?.zap.actions?.length || 1) - 1;
 
-//       if (lastStage !== stage) {
-//         producer.send({
-//           topic: TOPIC_NAME,
-//           messages: [{
-//             value: JSON.stringify({
-//               stage: stage + 1,
-//               zapRunId
-//             })
-//           }]
-//         });
-//       }
+      if (lastStage !== stage) {
+        producer.send({
+          topic: TOPIC_NAME,
+          messages: [{
+            value: JSON.stringify({
+              stage: stage + 1,
+              zapRunId
+            })
+          }]
+        });
+      }
 
-//       console.log("processing done")
+      console.log("processing done")
 
 
 
-//       await consumer.commitOffsets([
-//         {
-//           topic: TOPIC_NAME,
-//           partition: partition,
-//           offset: (parseInt(message.offset) + 1).toString(),
-//         },
-//       ]);
-//     },
-//   });
-// }
+      await consumer.commitOffsets([
+        {
+          topic: TOPIC_NAME,
+          partition: partition,
+          offset: (parseInt(message.offset) + 1).toString(),
+        },
+      ]);
+    },
+  });
+}
 
-// main();
+main();
 
 
 
@@ -506,216 +506,434 @@
 
 
 
-import express from "express";
-import { Kafka } from "kafkajs";
-import { PrismaClient } from "@prisma/client";
-import { parse } from "./parser";
-import { JsonObject } from "@prisma/client/runtime/library";
-import { sendEmail } from "./sendEmail";
-import { sendStripePayment } from "./sendStripePayment";
-import { EachMessagePayload } from "kafkajs";
+// import express from "express";
+// import { Kafka } from "kafkajs";
+// import { PrismaClient } from "@prisma/client";
+// import { parse } from "./parser";
+// import { JsonObject } from "@prisma/client/runtime/library";
+// import { sendEmail } from "./sendEmail";
+// import { sendStripePayment } from "./sendStripePayment";
+// import { EachMessagePayload } from "kafkajs";
 
 
-const prismaClient = new PrismaClient();
-const TOPIC_NAME = "zap-events";
+// const prismaClient = new PrismaClient();
+// const TOPIC_NAME = "zap-events";
 
-if (!process.env.KAFKA_BROKER) throw new Error("KAFKA_BROKER is required");
-if (!process.env.KAFKA_API_KEY) throw new Error("KAFKA_API_KEY is required");
-if (!process.env.KAFKA_API_SECRET) throw new Error("KAFKA_API_SECRET is required");
+// if (!process.env.KAFKA_BROKER) throw new Error("KAFKA_BROKER is required");
+// if (!process.env.KAFKA_API_KEY) throw new Error("KAFKA_API_KEY is required");
+// if (!process.env.KAFKA_API_SECRET) throw new Error("KAFKA_API_SECRET is required");
 
-const kafka = new Kafka({
-  clientId: "main-worker",
-  brokers: [process.env.KAFKA_BROKER],
-  ssl: { rejectUnauthorized: true },
-  sasl: {
-    mechanism: "plain",
-    username: process.env.KAFKA_API_KEY,
-    password: process.env.KAFKA_API_SECRET,
-  },
-  connectionTimeout: 10000,
-  requestTimeout: 30000,
-  retry: { initialRetryTime: 100, retries: 8 },
-});
+// const kafka = new Kafka({
+//   clientId: "main-worker",
+//   brokers: [process.env.KAFKA_BROKER],
+//   ssl: { rejectUnauthorized: true },
+//   sasl: {
+//     mechanism: "plain",
+//     username: process.env.KAFKA_API_KEY,
+//     password: process.env.KAFKA_API_SECRET,
+//   },
+//   connectionTimeout: 10000,
+//   requestTimeout: 30000,
+//   retry: { initialRetryTime: 100, retries: 8 },
+// });
 
-let consumer: any;
-let producer: any;
-let isShuttingDown = false;
+// let consumer: any;
+// let producer: any;
+// let isShuttingDown = false;
 
-const app = express();
-const PORT = process.env.PORT || 10000;
+// const app = express();
+// const PORT = process.env.PORT || 10000;
 
-app.get("/", (_, res) => res.send("Kafka Worker Running 🚀"));
-app.get("/health", (_, res) => res.json({ status: "ok" }));
+// app.get("/", (_, res) => res.send("Kafka Worker Running 🚀"));
+// app.get("/health", (_, res) => res.json({ status: "ok" }));
 
-app.listen(PORT, () => console.log(`✅ Web Service listening on port ${PORT}`));
+// app.listen(PORT, () => console.log(`✅ Web Service listening on port ${PORT}`));
 
-/**
- * Process a single Kafka message (workflow stage)
- */
-async function processMessage(zapRunId: string, stage: number) {
-  console.log(`🔄 Processing ZapRun: ${zapRunId}, Stage: ${stage}`);
+// /**
+//  * Process a single Kafka message (workflow stage)
+//  */
+// async function processMessage(zapRunId: string, stage: number) {
+//   console.log(`🔄 Processing ZapRun: ${zapRunId}, Stage: ${stage}`);
 
-  const zapRunDetails = await prismaClient.zapRun.findFirst({
-    where: { id: zapRunId },
-    include: {
-      zap: {
-        include: {
-          actions: { include: { type: true } },
-        },
-      },
-    },
-  });
+//   const zapRunDetails = await prismaClient.zapRun.findFirst({
+//     where: { id: zapRunId },
+//     include: {
+//       zap: {
+//         include: {
+//           actions: { include: { type: true } },
+//         },
+//       },
+//     },
+//   });
 
-  if (!zapRunDetails) {
-    console.error(`❌ ZapRun not found: ${zapRunId}`);
-    return;
-  }
+//   if (!zapRunDetails) {
+//     console.error(`❌ ZapRun not found: ${zapRunId}`);
+//     return;
+//   }
 
-  const currentAction = zapRunDetails.zap.actions.find(x => x.sortingOrder === stage);
-  if (!currentAction) {
-    console.error(`❌ Action not found for stage ${stage}`);
-    return;
-  }
+//   const currentAction = zapRunDetails.zap.actions.find(x => x.sortingOrder === stage);
+//   if (!currentAction) {
+//     console.error(`❌ Action not found for stage ${stage}`);
+//     return;
+//   }
 
-  const zapRunMetadata = zapRunDetails.metadata;
-  console.log("⚡ Current Action:", JSON.stringify(currentAction, null, 2));
+//   const zapRunMetadata = zapRunDetails.metadata;
+//   console.log("⚡ Current Action:", JSON.stringify(currentAction, null, 2));
 
-  // Email action
-  if (currentAction.type.id === "email") {
-    const body = parse((currentAction.metadata as JsonObject)?.body as string, zapRunMetadata);
-    const to = parse((currentAction.metadata as JsonObject)?.email as string, zapRunMetadata);
+//   // Email action
+//   if (currentAction.type.id === "email") {
+//     const body = parse((currentAction.metadata as JsonObject)?.body as string, zapRunMetadata);
+//     const to = parse((currentAction.metadata as JsonObject)?.email as string, zapRunMetadata);
 
-    if (!body || !to) throw new Error("Invalid email metadata");
+//     if (!body || !to) throw new Error("Invalid email metadata");
 
-    console.log(`📧 Sending email to ${to}`);
-    await sendEmail(to, body);
-    console.log("✅ Email sent");
-  }
+//     console.log(`📧 Sending email to ${to}`);
+//     await sendEmail(to, body);
+//     console.log("✅ Email sent");
+//   }
 
-  // Payment action
-  if (currentAction.type.id === "send-money") {
-    const amount = parse((currentAction.metadata as JsonObject)?.amount as string, zapRunMetadata);
-    const to = parse((currentAction.metadata as JsonObject)?.address as string, zapRunMetadata);
+//   // Payment action
+//   if (currentAction.type.id === "send-money") {
+//     const amount = parse((currentAction.metadata as JsonObject)?.amount as string, zapRunMetadata);
+//     const to = parse((currentAction.metadata as JsonObject)?.address as string, zapRunMetadata);
 
-    if (!amount || !to) throw new Error("Invalid payment metadata");
+//     if (!amount || !to) throw new Error("Invalid payment metadata");
 
-    console.log(`💰 Processing payment of ₹${amount} to ${to}`);
-    const paymentResult = await sendStripePayment(to, amount);
+//     console.log(`💰 Processing payment of ₹${amount} to ${to}`);
+//     const paymentResult = await sendStripePayment(to, amount);
 
-    if (!paymentResult.success) throw new Error(`Payment failed: ${paymentResult.message}`);
-    console.log(`✅ Payment Intent Created: ${paymentResult.sessionId}`);
-  }
+//     if (!paymentResult.success) throw new Error(`Payment failed: ${paymentResult.message}`);
+//     console.log(`✅ Payment Intent Created: ${paymentResult.sessionId}`);
+//   }
 
-  await new Promise(r => setTimeout(r, 500));
+//   await new Promise(r => setTimeout(r, 500));
 
-  // Schedule next stage
-  const lastStage = (zapRunDetails.zap.actions?.length || 1) - 1;
-  if (lastStage !== stage) {
-    await producer.send({
-      topic: TOPIC_NAME,
-      messages: [
-        {
-          key: zapRunId,
-          value: JSON.stringify({
-            stage: stage + 1,
-            zapRunId,
-            timestamp: new Date().toISOString(),
-          }),
-        },
-      ],
-    });
-    console.log(`➡️ Moved to next stage: ${stage + 1}`);
-  } else {
-    console.log("🏁 Workflow completed");
-  }
-}
+//   // Schedule next stage
+//   const lastStage = (zapRunDetails.zap.actions?.length || 1) - 1;
+//   if (lastStage !== stage) {
+//     await producer.send({
+//       topic: TOPIC_NAME,
+//       messages: [
+//         {
+//           key: zapRunId,
+//           value: JSON.stringify({
+//             stage: stage + 1,
+//             zapRunId,
+//             timestamp: new Date().toISOString(),
+//           }),
+//         },
+//       ],
+//     });
+//     console.log(`➡️ Moved to next stage: ${stage + 1}`);
+//   } else {
+//     console.log("🏁 Workflow completed");
+//   }
+// }
 
-/**
- * Kafka consumer setup
- */
-async function main() {
-  consumer = kafka.consumer({ groupId: "main-worker" });
-  producer = kafka.producer();
+// /**
+//  * Kafka consumer setup
+//  */
+// async function main() {
+//   consumer = kafka.consumer({ groupId: "main-worker" });
+//   producer = kafka.producer();
 
-  console.log("🔌 Connecting to Kafka...");
-  await consumer.connect();
-  await producer.connect();
-  console.log("✅ Kafka connected");
+//   console.log("🔌 Connecting to Kafka...");
+//   await consumer.connect();
+//   await producer.connect();
+//   console.log("✅ Kafka connected");
 
-  await consumer.subscribe({ topic: TOPIC_NAME, fromBeginning: true });
-  console.log(`🎯 Subscribed to ${TOPIC_NAME}`);
+//   await consumer.subscribe({ topic: TOPIC_NAME, fromBeginning: true });
+//   console.log(`🎯 Subscribed to ${TOPIC_NAME}`);
 
-  await consumer.run({
-    autoCommit: false,
-    eachMessage: async ({ topic, partition, message, heartbeat, pause }: EachMessagePayload)  => {
-      try {
-        if (!message.value) return;
-        const { zapRunId, stage } = JSON.parse(message.value.toString());
+//   await consumer.run({
+//     autoCommit: false,
+//     eachMessage: async ({ topic, partition, message, heartbeat, pause }: EachMessagePayload)  => {
+//       try {
+//         if (!message.value) return;
+//         const { zapRunId, stage } = JSON.parse(message.value.toString());
 
-        if (!zapRunId || stage === undefined) {
-          console.error("❌ Invalid message format");
-          return;
-        }
+//         if (!zapRunId || stage === undefined) {
+//           console.error("❌ Invalid message format");
+//           return;
+//         }
 
-        await processMessage(zapRunId, stage);
-        await heartbeat();
+//         await processMessage(zapRunId, stage);
+//         await heartbeat();
 
-        await consumer.commitOffsets([
-          { topic, partition, offset: (parseInt(message.offset) + 1).toString() },
-        ]);
+//         await consumer.commitOffsets([
+//           { topic, partition, offset: (parseInt(message.offset) + 1).toString() },
+//         ]);
 
-        console.log("✅ Message processed & committed");
-      } catch (err) {
-        console.error("❌ Error processing message:", err);
-        pause();
-        setTimeout(() => consumer.resume([{ topic: TOPIC_NAME }]), 5000);
-      }
-    },
-  });
-}
+//         console.log("✅ Message processed & committed");
+//       } catch (err) {
+//         console.error("❌ Error processing message:", err);
+//         pause();
+//         setTimeout(() => consumer.resume([{ topic: TOPIC_NAME }]), 5000);
+//       }
+//     },
+//   });
+// }
 
-/**
- * Graceful shutdown
- */
-function setupGracefulShutdown() {
-  const signals: NodeJS.Signals[] = ["SIGINT", "SIGTERM", "SIGQUIT"];
+// /**
+//  * Graceful shutdown
+//  */
+// function setupGracefulShutdown() {
+//   const signals: NodeJS.Signals[] = ["SIGINT", "SIGTERM", "SIGQUIT"];
 
-  signals.forEach(signal => {
-    process.on(signal, async () => {
-      console.log(`📡 Received ${signal}, shutting down...`);
-      isShuttingDown = true;
-      await cleanup();
-      process.exit(0);
-    });
-  });
+//   signals.forEach(signal => {
+//     process.on(signal, async () => {
+//       console.log(`📡 Received ${signal}, shutting down...`);
+//       isShuttingDown = true;
+//       await cleanup();
+//       process.exit(0);
+//     });
+//   });
 
-  process.on("uncaughtException", async (err) => {
-    console.error("💥 Uncaught exception:", err);
-    await cleanup();
-    process.exit(1);
-  });
+//   process.on("uncaughtException", async (err) => {
+//     console.error("💥 Uncaught exception:", err);
+//     await cleanup();
+//     process.exit(1);
+//   });
 
-  process.on("unhandledRejection", async (reason) => {
-    console.error("💥 Unhandled rejection:", reason);
-    await cleanup();
-    process.exit(1);
-  });
-}
+//   process.on("unhandledRejection", async (reason) => {
+//     console.error("💥 Unhandled rejection:", reason);
+//     await cleanup();
+//     process.exit(1);
+//   });
+// }
 
-async function cleanup() {
-  console.log("🧹 Cleaning up...");
-  try {
-    if (consumer) await consumer.disconnect();
-    if (producer) await producer.disconnect();
-    await prismaClient.$disconnect();
-    console.log("✅ Cleanup done");
-  } catch (err) {
-    console.error("❌ Cleanup error:", err);
-  }
-}
+// async function cleanup() {
+//   console.log("🧹 Cleaning up...");
+//   try {
+//     if (consumer) await consumer.disconnect();
+//     if (producer) await producer.disconnect();
+//     await prismaClient.$disconnect();
+//     console.log("✅ Cleanup done");
+//   } catch (err) {
+//     console.error("❌ Cleanup error:", err);
+//   }
+// }
 
-setupGracefulShutdown();
-main().catch(err => {
-  console.error("💥 Fatal error:", err);
-  process.exit(1);
-});
+// setupGracefulShutdown();
+// main().catch(err => {
+//   console.error("💥 Fatal error:", err);
+//   process.exit(1);
+// });
+
+
+
+
+
+// import express from "express";
+// import { Kafka, EachMessagePayload } from "kafkajs";
+// import { PrismaClient } from "@prisma/client";
+// import { parse } from "./parser";
+// import { sendEmail } from "./sendEmail";
+// import { sendStripePayment } from "./sendStripePayment";
+
+// const prismaClient = new PrismaClient();
+// const TOPIC_NAME = "zap-events";
+
+// // Use this instead of Prisma's internal JsonObject
+// type JsonObject = Record<string, any>;
+
+// if (!process.env.KAFKA_BROKER) throw new Error("KAFKA_BROKER is required");
+// if (!process.env.KAFKA_API_KEY) throw new Error("KAFKA_API_KEY is required");
+// if (!process.env.KAFKA_API_SECRET) throw new Error("KAFKA_API_SECRET is required");
+
+// const kafka = new Kafka({
+//   clientId: "main-worker",
+//   brokers: [process.env.KAFKA_BROKER],
+//   ssl: { rejectUnauthorized: true },
+//   sasl: {
+//     mechanism: "plain",
+//     username: process.env.KAFKA_API_KEY,
+//     password: process.env.KAFKA_API_SECRET,
+//   },
+//   connectionTimeout: 10000,
+//   requestTimeout: 30000,
+//   retry: { initialRetryTime: 100, retries: 8 },
+// });
+
+// let consumer: any;
+// let producer: any;
+// let isShuttingDown = false;
+
+// const app = express();
+// const PORT = process.env.PORT || 10000;
+
+// app.get("/", (_, res) => res.send("Kafka Worker Running 🚀"));
+// app.get("/health", (_, res) => res.json({ status: "ok" }));
+
+// app.listen(PORT, () => console.log(`✅ Web Service listening on port ${PORT}`));
+
+// /**
+//  * Process a single Kafka message (workflow stage)
+//  */
+// async function processMessage(zapRunId: string, stage: number) {
+//   console.log(`🔄 Processing ZapRun: ${zapRunId}, Stage: ${stage}`);
+
+//   const zapRunDetails = await prismaClient.zapRun.findFirst({
+//     where: { id: zapRunId },
+//     include: {
+//       zap: {
+//         include: {
+//           actions: { include: { type: true } },
+//         },
+//       },
+//     },
+//   });
+
+//   if (!zapRunDetails) {
+//     console.error(`❌ ZapRun not found: ${zapRunId}`);
+//     return;
+//   }
+
+//   const currentAction = zapRunDetails.zap.actions.find(x => x.sortingOrder === stage);
+//   if (!currentAction) {
+//     console.error(`❌ Action not found for stage ${stage}`);
+//     return;
+//   }
+
+//   const zapRunMetadata = zapRunDetails.metadata;
+//   console.log("⚡ Current Action:", JSON.stringify(currentAction, null, 2));
+
+//   // Email action
+//   if (currentAction.type.id === "email") {
+//     const body = parse((currentAction.metadata as JsonObject)?.body as string, zapRunMetadata);
+//     const to = parse((currentAction.metadata as JsonObject)?.email as string, zapRunMetadata);
+
+//     if (!body || !to) throw new Error("Invalid email metadata");
+
+//     console.log(`📧 Sending email to ${to}`);
+//     await sendEmail(to, body);
+//     console.log("✅ Email sent");
+//   }
+
+//   // Payment action
+//   if (currentAction.type.id === "send-money") {
+//     const amount = parse((currentAction.metadata as JsonObject)?.amount as string, zapRunMetadata);
+//     const to = parse((currentAction.metadata as JsonObject)?.address as string, zapRunMetadata);
+
+//     if (!amount || !to) throw new Error("Invalid payment metadata");
+
+//     console.log(`💰 Processing payment of ₹${amount} to ${to}`);
+//     const paymentResult = await sendStripePayment(to, amount);
+
+//     if (!paymentResult.success) throw new Error(`Payment failed: ${paymentResult.message}`);
+//     console.log(`✅ Payment Intent Created: ${paymentResult.sessionId}`);
+//   }
+
+//   await new Promise(r => setTimeout(r, 500));
+
+//   // Schedule next stage
+//   const lastStage = (zapRunDetails.zap.actions?.length || 1) - 1;
+//   if (lastStage !== stage) {
+//     await producer.send({
+//       topic: TOPIC_NAME,
+//       messages: [
+//         {
+//           key: zapRunId,
+//           value: JSON.stringify({
+//             stage: stage + 1,
+//             zapRunId,
+//             timestamp: new Date().toISOString(),
+//           }),
+//         },
+//       ],
+//     });
+//     console.log(`➡️ Moved to next stage: ${stage + 1}`);
+//   } else {
+//     console.log("🏁 Workflow completed");
+//   }
+// }
+
+// /**
+//  * Kafka consumer setup
+//  */
+// async function main() {
+//   consumer = kafka.consumer({ groupId: "main-worker" });
+//   producer = kafka.producer();
+
+//   console.log("🔌 Connecting to Kafka...");
+//   await consumer.connect();
+//   await producer.connect();
+//   console.log("✅ Kafka connected");
+
+//   await consumer.subscribe({ topic: TOPIC_NAME, fromBeginning: true });
+//   console.log(`🎯 Subscribed to ${TOPIC_NAME}`);
+
+//   await consumer.run({
+//     autoCommit: false,
+//     eachMessage: async ({ topic, partition, message, heartbeat, pause }: EachMessagePayload) => {
+//       try {
+//         if (!message.value) return;
+//         const { zapRunId, stage } = JSON.parse(message.value.toString());
+
+//         if (!zapRunId || stage === undefined) {
+//           console.error("❌ Invalid message format");
+//           return;
+//         }
+
+//         await processMessage(zapRunId, stage);
+//         await heartbeat();
+
+//         await consumer.commitOffsets([
+//           { topic, partition, offset: (parseInt(message.offset) + 1).toString() },
+//         ]);
+
+//         console.log("✅ Message processed & committed");
+//       } catch (err) {
+//         console.error("❌ Error processing message:", err);
+//         pause();
+//         setTimeout(() => consumer.resume([{ topic: TOPIC_NAME }]), 5000);
+//       }
+//     },
+//   });
+// }
+
+// /**
+//  * Graceful shutdown
+//  */
+// function setupGracefulShutdown() {
+//   const signals: NodeJS.Signals[] = ["SIGINT", "SIGTERM", "SIGQUIT"];
+
+//   signals.forEach(signal => {
+//     process.on(signal, async () => {
+//       console.log(`📡 Received ${signal}, shutting down...`);
+//       isShuttingDown = true;
+//       await cleanup();
+//       process.exit(0);
+//     });
+//   });
+
+//   process.on("uncaughtException", async (err) => {
+//     console.error("💥 Uncaught exception:", err);
+//     await cleanup();
+//     process.exit(1);
+//   });
+
+//   process.on("unhandledRejection", async (reason) => {
+//     console.error("💥 Unhandled rejection:", reason);
+//     await cleanup();
+//     process.exit(1);
+//   });
+// }
+
+// async function cleanup() {
+//   console.log("🧹 Cleaning up...");
+//   try {
+//     if (consumer) await consumer.disconnect();
+//     if (producer) await producer.disconnect();
+//     await prismaClient.$disconnect();
+//     console.log("✅ Cleanup done");
+//   } catch (err) {
+//     console.error("❌ Cleanup error:", err);
+//   }
+// }
+
+// setupGracefulShutdown();
+// main().catch(err => {
+//   console.error("💥 Fatal error:", err);
+//   process.exit(1);
+// });
